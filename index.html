@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- displays site properly based on user's device -->
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  <link rel="stylesheet" href="./css/normalize.css">
+  <link rel="stylesheet" href="./css/style.css">
+
+  <title> | Tip calculator app</title>
+
+
+</head>
+
+<body>
+  <div class="logo">
+    <img src="./images/logo.svg" alt="">
+  </div>
+  <main>
+    <div class="card">
+      <div class="content data">
+        <div class="input-group">
+          <label for="bill" data-error="Can't be 0">Bill</label>
+          <input type="text" name="bill" id="bill" class="currency" placeholder="Bill value" data-viewed="false">
+          <i><img src="./images/icon-dollar.svg" alt=""></i>
+        </div>
+
+        <div class="selection">
+          <label>Select Tip %</label>
+          <input type="button" value="5%" data-value="5" class="numbers">
+          <input type="button" value="10%" data-value="10" class="numbers">
+          <input type="button" value="15%" data-value="15" class="numbers">
+          <input type="button" value="25%" data-value="25" class="numbers">
+          <input type="button" value="50%" data-value="50" class="numbers">
+          <input type="button" value="Custom" class="custom people">
+        </div>
+
+        <div class="input-group">
+          <label for="people" data-error="Can't be 0">Number of People</label>
+          <input type="text" name="people" id="people" class="people" placeholder="Max 100" data-viewed="false">
+          <i><img src="./images/icon-person.svg" alt=""></i>
+        </div>
+
+      </div>
+      <div class="content result">
+        <div class="split">
+          <span>Tip Amount</span>
+          <span>/person</span>
+          <span id="tip">$ 00.00</span>
+        </div>
+        <div class="split">
+          <span>Total</span>
+          <span>/person</span>
+          <span id="total">$ 00.00</span>
+        </div>
+
+        <input type="button" value="Reset" id="reset">
+      </div>
+    </div>
+  </main>
+
+
+  <!-- 
+    <div class="attribution">
+    Challenge by <a href="https://www.frontendmentor.io?ref=challenge" target="_blank">Frontend Mentor</a>. 
+    Coded by <a href="#">Your Name Here</a>.
+  </div>
+-->
+  <script src="./js/jquery-3.1.1.min.js"></script>
+  <script>
+    $(document).ready(function () {
+
+      const buttons = $('.selection input')
+
+      $('[type="button"]').click(function () {
+        if ($(this).hasClass('numbers')) {
+          $('.selection .custom').attr('type', 'button')
+          $('.selection .custom').val("Custom")
+          calc()
+        } else if ($(this).hasClass('custom')) {
+          $(this).attr('type', 'text')
+        }
+        [buttons].forEach(element => {
+          $(element).removeClass('active')
+        });
+        $(this).addClass('active')
+        calc()
+      })
+
+      $('#reset').click(function () {
+
+        $('#bill').val('');
+        $('#people').val('');
+        $('#tip').text('$ 00.00');
+        $('#total').text('$ 00.00');
+
+        for (const element of buttons) {
+          $(element).removeClass('active')
+
+          if ($(element).hasClass('custom')) {
+
+            $(element).attr('type', 'button')
+            $(element).val("Custom")
+          }
+        }
+
+      });
+
+
+
+
+      function calc() {
+
+        if (validate() > 0) {
+
+          const bill = $('#bill').val();
+          const people = $('#people').val();
+          const percent = $('.selection .active');
+          const tipDisplay = $('#tip');
+          const billDisplay = $('#total');
+
+          let tip = 0, tipPerPerson = 0, billPerPerson = 0;
+
+          if ($(percent).hasClass('numbers')) {
+            tip = (bill / 100 * $(percent).attr('data-value'))
+          } else {
+            tip = (bill / 100 * $(percent).val())
+          }
+
+          tipPerPerson = (tip / people).toFixed(2)
+          billPerPerson = ((Number(bill) + tip) / people).toFixed(2)
+
+          $(tipDisplay).text(`$ ${tipPerPerson}`)
+          $(billDisplay).text(`$ ${billPerPerson}`)
+
+        }
+
+      }
+      function validate() {
+        const bill = $('#bill');
+        const people = $('#people');
+        const tipPercent = $('.selection .active');
+
+        let valid = -2
+
+        if (tipPercent.length > 0) {
+          valid += 1
+        }
+
+        if ($(bill).attr('data-viewed') === 'false') {
+          $(bill).attr('data-viewed', 'true')
+        } else {
+          if ($(bill).val() == 0 || $(bill).val() == null) {
+            let parent = $(bill).parent('.input-group')
+            if (!$(parent).hasClass('haserror')) {
+              $(parent).addClass('haserror')
+            }
+          } else {
+            $(bill).parent('.input-group').removeClass('haserror')
+            valid += 1
+          }
+        }
+
+        if ($(people).attr('data-viewed') === 'false') {
+          $(people).attr('data-viewed', 'true')
+        } else {
+          if ($(people).val() == 0 || $(people).val() == null) {
+            let parent = $(people).parent('.input-group')
+            if (!$(parent).hasClass('haserror')) {
+              $(parent).addClass('haserror')
+            }
+          } else {
+            $(people).parent('.input-group').removeClass('haserror')
+            valid += 1
+
+          }
+        }
+
+        return valid
+      }
+
+      // Restricts input for each element in the set of matched elements to the given inputFilter.
+      (function ($) {
+        $.fn.inputFilter = function (inputFilter) {
+          return this.on("input keyup mouseup select contextmenu drop", function () {
+            if (inputFilter(this.value)) {
+              this.oldValue = this.value;
+              this.oldSelectionStart = this.selectionStart;
+              this.oldSelectionEnd = this.selectionEnd;
+            } else if (this.hasOwnProperty("oldValue")) {
+              this.value = this.oldValue;
+              this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+            } else {
+              this.value = "";
+            }
+            calc()
+          });
+        };
+      }(jQuery));
+
+
+      // Install input filters.
+
+      $(".people").inputFilter(function (value) {
+        return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 100);
+      });
+
+
+      $(".currency").inputFilter(function (value) {
+        return /^\d*[.]?\d{0,2}$/.test(value);
+      });
+    })
+  </script>
+
+</body>
+
+</html>
